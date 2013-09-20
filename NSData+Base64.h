@@ -42,4 +42,6 @@ char *NewBase64Encode(
 // added by Hiroshi Hashiguchi
 - (NSString *)base64EncodedStringWithSeparateLines:(BOOL)separateLines;
 
+- (NSString *)base64URLEncodedString;
+
 @end
