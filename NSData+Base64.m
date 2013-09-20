@@ -158,8 +158,7 @@ char *NewBase64Encode(
 	size_t *outputLength)
 {
 	const unsigned char *inputBuffer = (const unsigned char *)buffer;
-	
-	#define MAX_NUM_PADDING_CHARS 2
+
 	#define OUTPUT_LINE_LENGTH 64
 	#define INPUT_LINE_LENGTH ((OUTPUT_LINE_LENGTH / BASE64_UNIT_SIZE) * BINARY_UNIT_SIZE)
 	#define CR_LF_SIZE 2
@@ -296,16 +295,10 @@ char *NewBase64Encode(
 //
 - (NSString *)base64EncodedString
 {
-	size_t outputLength;
-	char *outputBuffer =
-		NewBase64Encode([self bytes], [self length], true, &outputLength);
+	size_t outputLength = 0;
+	char *outputBuffer = NewBase64Encode([self bytes], [self length], true, &outputLength);
 	
-	NSString *result =
-		[[[NSString alloc]
-			initWithBytes:outputBuffer
-			length:outputLength
-			encoding:NSASCIIStringEncoding]
-		autorelease];
+	NSString *result = [[NSString alloc] initWithBytes:outputBuffer length:outputLength encoding:NSASCIIStringEncoding];
 	free(outputBuffer);
 	return result;
 }
@@ -317,15 +310,26 @@ char *NewBase64Encode(
 	char *outputBuffer =
     NewBase64Encode([self bytes], [self length], separateLines, &outputLength);
 	
-	NSString *result =
-    [[[NSString alloc]
-      initWithBytes:outputBuffer
-      length:outputLength
-      encoding:NSASCIIStringEncoding]
-     autorelease];
+	NSString *result = [[NSString alloc] initWithBytes:outputBuffer length:outputLength encoding:NSASCIIStringEncoding];
 	free(outputBuffer);
 	return result;
 }
 
+- (NSString *)base64URLEncodedString {
+    size_t outputLength = 0;
+    
+    char *outputBuffer = NewBase64Encode([self bytes], [self length], true, &outputLength);
+    NSString *result = [[NSString alloc] initWithBytes:outputBuffer length:outputLength encoding:NSASCIIStringEncoding];
+    free(outputBuffer);
+    
+    NSString *b64PayloadClean = [[result componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]] componentsJoinedByString:@""];
+    
+    //do URL encoding by replacing "+" and "/" to "-" and "_" respectively
+    b64PayloadClean = [b64PayloadClean stringByReplacingOccurrencesOfString:@"=" withString:@""];
+    b64PayloadClean = [b64PayloadClean stringByReplacingOccurrencesOfString:@"+" withString:@"-"];
+    b64PayloadClean = [b64PayloadClean stringByReplacingOccurrencesOfString:@"/" withString:@"_"];
+    
+    return b64PayloadClean;
+}
 
 @end
